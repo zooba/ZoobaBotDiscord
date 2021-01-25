@@ -35,7 +35,8 @@ def get_discord(resource):
     return r.json()
 
 
-def get_role_names(guild, req):
+def get_role_names(req):
+    guild = get_guild(req)
     roles = {r["id"]: r["name"] for r in get_discord(f"guilds/{guild}/roles")}
     key = req.params.get("role.id")
     if key:
@@ -46,7 +47,8 @@ def get_role_names(guild, req):
     return roles
 
 
-def get_role_count(guild, req):
+def get_role_count(req):
+    guild = get_guild(req)
     roles = {r["id"]: r["name"] for r in get_discord(f"guilds/{guild}/roles")}
     members = get_discord(f"guilds/{guild}/members?limit=1000")
     counts = {}
@@ -69,9 +71,8 @@ HANDLERS = {
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
-    guild = get_guild(req)
-    what = req.route_params.get("what")
     try:
+        what = req.route_params.get("what")
         try:
             fn = HANDLERS[what]
         except KeyError:
@@ -80,6 +81,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 404,
             )
         r = fn(req)
+        if isinstance(r, dict):
+            return func.HttpResponse(json.dumps(r), mimetype="application/json")
+        return r
     except requests.exceptions.HTTPError as ex:
         logging.exception("Discord error")
         return error_resp(f"Discord error: {ex}", 400)
@@ -87,6 +91,3 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         logging.exception("Internal error")
         raise
 
-    if isinstance(r, dict):
-        return func.HttpResponse(json.dumps(r), mimetype="application/json")
-    return r
