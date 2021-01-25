@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import azure.functions as func
-import requests
+import json
 import logging
 import os
+import requests
 import sys
 
 API_ENDPOINT = "https://discord.com/api/v8"
@@ -60,5 +61,5 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         raise
 
     if isinstance(r, dict):
-        return func.HttpResponse(r, mimetype="application/json")
+        return func.HttpResponse(json.dumps(r), mimetype="application/json")
     return r
