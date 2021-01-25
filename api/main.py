@@ -28,7 +28,7 @@ def get_guild(req):
 
 
 def get_discord(resource):
-    r = requests.get(f"{API_ENDPOINT}/{resource}")
+    r = requests.get(f"{API_ENDPOINT}/{resource}", headers=AUTH_HEADER)
     logging.info("response for %s: %s", resource, r.status_code)
     r.raise_for_status()
     return r.json()
@@ -53,6 +53,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         else:
             return error_resp("'what' parameter is required", 400)
     except requests.exceptions.HTTPError as ex:
+        logging.exception("Discord error")
         return error_resp(f"Discord error: {ex}", 400)
 
     if isinstance(r, dict):
