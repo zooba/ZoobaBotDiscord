@@ -55,6 +55,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     except requests.exceptions.HTTPError as ex:
         logging.exception("Discord error")
         return error_resp(f"Discord error: {ex}", 400)
+    except Exception as ex:
+        logging.exception("Internal error")
+        raise
 
     if isinstance(r, dict):
         return func.HttpResponse(r, mimetype="application/json")
