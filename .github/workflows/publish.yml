@@ -1,0 +1,17 @@
+on:
+  push:
+    branches:
+    - main
+
+name: Publish
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 'Checkout' 
+      uses: actions/checkout@main
+
+    - uses: azure/webapps-deploy@v2
+      with:
+        publish-profile: ${{ secrets.AzurePublishProfile }}
