@@ -35,6 +35,17 @@ def get_discord(resource):
     return r.json()
 
 
+def get_role_names(guild, req):
+    roles = {r["id"]: r["name"] for r in get_discord(f"guilds/{guild}/roles")}
+    key = req.params.get("role_id")
+    if key:
+        try:
+            return str(roles[key])
+        except KeyError:
+            return key
+    return roles
+
+
 def get_role_count(guild, req):
     roles = {r["id"]: r["name"] for r in get_discord(f"guilds/{guild}/roles")}
     members = get_discord(f"guilds/{guild}/members?limit=1000")
@@ -42,17 +53,23 @@ def get_role_count(guild, req):
     for m in members:
         for r in m["roles"]:
             counts[r] = counts.get(r, 0) + 1
-    return {roles[k]: v for k, v in counts.items()}
+    key = req.params.get("role_id")
+    if key:
+        try:
+            return str(counts[key])
+        except KeyError:
+            return "0"
+    return counts
 
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     guild = get_guild(req)
-    what = req.params.get("what")
+    what = req.route_params.get("what")
     try:
-        if what == "role_count":
+        if what == "roles":
+            r = get_role_names(guild, req)
+        elif what == "role_count":
             r = get_role_count(guild, req)
-        else:
-            return error_resp("'what' parameter is required", 400)
     except requests.exceptions.HTTPError as ex:
         logging.exception("Discord error")
         return error_resp(f"Discord error: {ex}", 400)
