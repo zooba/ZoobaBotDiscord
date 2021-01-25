@@ -35,7 +35,7 @@ def get_discord(resource):
 
 
 def get_role_count(guild, req):
-    roles = get_discord(f"guilds/{guild}/roles")
+    roles = {r["id"]: r["name"] for r in get_discord(f"guilds/{guild}/roles")}
     members = get_discord(f"guilds/{guild}/members?limit=1000")
     counts = {}
     for m in members:
